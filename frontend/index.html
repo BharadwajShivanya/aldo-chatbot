@@ -234,7 +234,7 @@
   <script>
     const chat = document.getElementById('chat');
 
-    const eventSource = new EventSource('http://localhost:3000/stream');
+    const eventSource = new EventSource('https://aldo-chatbot-production.up.railway.app/stream');
     eventSource.onmessage = function(event) {
       const data = JSON.parse(event.data);
       const msgDiv = document.createElement('div');
