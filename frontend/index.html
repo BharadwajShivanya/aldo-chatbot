@@ -253,7 +253,7 @@
       const message = document.getElementById('message').value.trim();
       if (!message) return;
 
-      fetch('http://localhost:3000/send', {
+      fetch('https://aldo-chatbot-production.up.railway.app/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, message })
