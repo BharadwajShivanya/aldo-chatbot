@@ -218,179 +218,47 @@
 </body>
 </html>
  -->
- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ALDO Support Chatbot</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom right, #0f2027, #203a43, #2c5364);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-    .chat-container {
-      width: 400px;
-      background-color: #001f2e;
-      border-radius: 15px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
-      display: flex;
-      flex-direction: column;
-    }
-    .chat-header {
-      background: linear-gradient(to right, #00d2ff, #3a7bd5);
-      padding: 15px;
-      color: white;
-      font-weight: bold;
-      border-top-left-radius: 15px;
-      border-top-right-radius: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .chat-header img {
-      height: 30px;
-      margin-right: 10px;
-    }
-    .chat-messages {
-      flex: 1;
-      padding: 20px;
-      overflow-y: auto;
-      color: white;
-    }
-    .message {
-      margin-bottom: 10px;
-      max-width: 80%;
-      padding: 10px;
-      border-radius: 10px;
-    }
-    .user {
-      background-color: #005c7a;
-      align-self: flex-end;
-    }
-    .bot {
-      background-color: #3fffb3;
-      color: black;
-      align-self: flex-start;
-    }
-    .options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 10px;
-      justify-content: center;
-    }
-    .option-btn {
-      background-color: #019fb6;
-      border: none;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-    }
-    .input-container {
-      display: flex;
-      padding: 10px;
-      background-color: #00141f;
-      border-bottom-left-radius: 15px;
-      border-bottom-right-radius: 15px;
-    }
-    .input-container input {
-      flex: 1;
-      padding: 8px;
-      border: none;
-      border-radius: 10px;
-      margin-right: 10px;
-    }
-    .input-container button {
-      background-color: #00c896;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 10px;
-      color: white;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <div class="chat-container">
-    <div class="chat-header">
-      <img src="a.png" alt="ALDO Logo"/>
-      <span>ALDO Support</span>
-    </div>
-    <div class="chat-messages" id="chat">
-      <div class="message bot">
-        ALDO: Hi! I'm ALDO Bot 🌿 How can I assist you with climate and sustainability today?
-      </div>
-    </div>
-    <div class="options" id="options">
-      <button class="option-btn">Sustainability</button>
-      <button class="option-btn">Product Materials</button>
-      <button class="option-btn">Recycling</button>
-      <button class="option-btn">Compliance Support</button>
-      <button class="option-btn">Learn More</button>
-      <button class="option-btn">Contact ALDO</button>
-    </div>
-    <div class="input-container">
-      <input type="text" id="userInput" placeholder="Type your question here..." />
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const nodemailer = require("nodemailer");
+require("dotenv").config();
 
-  <script>
-    const chat = document.getElementById("chat");
-    const options = document.getElementById("options");
-    const userInput = document.getElementById("userInput");
-    const BACKEND_URL = "https://aldo-chatbot-production.up.railway.app";
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-    const knownOptions = [
-      "Sustainability",
-      "Product Materials",
-      "Recycling",
-      "Compliance Support",
-      "Learn More",
-      "Contact ALDO"
-    ];
+app.use(cors());
+app.use(bodyParser.json());
 
-    document.querySelectorAll(".option-btn").forEach(btn => {
-      btn.onclick = () => {
-        sendMessage(btn.innerText);
-      };
+app.post("/send", async (req, res) => {
+  const { query } = req.body;
+
+  try {
+    // Create transporter using Gmail SMTP
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.MAIL_USER,       // your Gmail address
+        pass: process.env.MAIL_PASS        // app password (not Gmail password)
+      }
     });
 
-    function sendMessage(message = null) {
-      const query = message || userInput.value.trim();
-      if (!query) return;
-      appendMessage("user", query);
-      userInput.value = "";
+    const mailOptions = {
+      from: process.env.MAIL_USER,
+      to: "shivanya.b@infera.in",
+      subject: "New Chatbot Query",
+      text: `User asked: ${query}`
+    };
 
-      let response;
-      if (knownOptions.includes(query)) {
-        response = `ALDO: Here is some information about "${query}".`;
-      } else {
-        response = "ALDO: I have asked the required person to look into it.";
-        fetch(`${BACKEND_URL}/send`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query })
-        }).catch(() => {});
-      }
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Real email sent to shivanya.b@infera.in");
+    res.status(200).send("Email sent");
+  } catch (error) {
+    console.error("❌ Failed to send email:", error);
+    res.status(500).send("Email failed");
+  }
+});
 
-      appendMessage("bot", response);
-    }
-
-    function appendMessage(sender, text) {
-      const msg = document.createElement("div");
-      msg.className = `message ${sender}`;
-      msg.innerText = text;
-      chat.appendChild(msg);
-      chat.scrollTop = chat.scrollHeight;
-    }
-  </script>
-</body>
-</html>
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
