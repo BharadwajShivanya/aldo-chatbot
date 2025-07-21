@@ -11,30 +11,25 @@ let clients = [];
 app.use(cors());
 app.use(express.json());
 
-// Nodemailer setup
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS
-  }
+    pass: process.env.EMAIL_PASS,
+  },
 });
-
-// In-memory email tracker to avoid spamming
-let emailSentFor = {};
 
 app.post("/send", async (req, res) => {
   const { username, message } = req.body;
-  const text = message.trim().toLowerCase();
 
   const userMsg = { username, message };
   clients.forEach(client => {
     client.res.write(`data: ${JSON.stringify(userMsg)}\n\n`);
   });
 
+  const text = message.trim().toLowerCase();
   let botMessage = "";
 
-  // Bot logic
   if (text.includes("hi") || text.includes("hello")) {
     botMessage = `Hello ${username}! Welcome to Aldo 🌿\n\nHow can I assist you?\n1️⃣ Sustainability Planning\n2️⃣ Climate Risk Tools\n3️⃣ Compliance Support\n4️⃣ Learn More\n5️⃣ Contact Us`;
   } else if (text === "1") {
@@ -48,25 +43,20 @@ app.post("/send", async (req, res) => {
   } else if (text === "5") {
     botMessage = `📞 Contact Us:\n- a) Request Consultation\n- b) Speak to an Expert\n- c) Download Brochure\n(Type a, b, or c)`;
   } else if (["a", "b", "c", "d"].includes(text)) {
-    botMessage = "ℹ️ Option selected. Please reply with the main category (1, 2, 3, 4, or 5) so we can assist better.";
-
-    const emailKey = `${username}_${message}`;
-    if (!emailSentFor[emailKey]) {
-      try {
-        await transporter.sendMail({
-          from: process.env.EMAIL,
-          to: "shivanya.b@infera.in",
-          subject: `Aldo Bot Query from ${username}`,
-          text: `User "${username}" selected option "${message}"`
-        });
-        emailSentFor[emailKey] = true;
-        console.log(`📩 Email sent for ${emailKey}`);
-      } catch (err) {
-        console.error("❌ Email sending failed:", err);
-      }
+    botMessage = "ℹ️ Option selected. Could you tell me which main category you're referring to (1, 2, 3, 4, or 5)?";
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL,
+        to: "shivanya.b@infera.in",
+        subject: "Aldo Bot Inquiry",
+        text: `User ${username} selected option: ${message}`
+      });
+      console.log("📩 Email sent");
+    } catch (error) {
+      console.error("❌ Failed to send email:", error);
     }
   } else {
-    botMessage = `Thanks ${username}, please choose one of the options. Type "hi" to restart.`;
+    botMessage = `Thanks for your message, ${username}. Please choose one of the options from the menu. Type "hi" to start over.`;
   }
 
   const botReply = { username: "EPAR Bot", message: botMessage };
@@ -77,7 +67,6 @@ app.post("/send", async (req, res) => {
   res.status(200).end();
 });
 
-// Streaming setup
 app.get("/stream", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -91,7 +80,6 @@ app.get("/stream", (req, res) => {
   });
 });
 
-// Start server
 app.listen(PORT, () => {
   console.log(`✅ EPAR Bot backend running on http://localhost:${PORT}`);
 });
