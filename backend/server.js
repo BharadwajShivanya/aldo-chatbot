@@ -97,7 +97,11 @@ const cors = require("cors");
 const nodemailer = require("nodemailer");
 
 const app = express();
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT;
+
+if (!PORT) {
+  throw new Error("❌ PORT environment variable not defined");
+}
 
 // 🔥 Debug log middleware - add early
 app.use((req, res, next) => {
