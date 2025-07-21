@@ -8,16 +8,15 @@ const PORT = process.env.PORT || 3000;
 
 let clients = [];
 
-// ✅ CORS setup
+// ✅ CORS config — allow your frontend domain in production
 app.use(cors({
-  origin: "https://aldo-chatbot-uw7d.vercel.app", // Replace with your actual frontend
+  origin: "*",
   methods: ["GET", "POST"],
-  credentials: true
 }));
 
 app.use(express.json());
 
-// ✅ Nodemailer
+// ✅ Email transporter
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -26,7 +25,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ✅ POST /send
+// ✅ POST /send — Handles incoming user messages
 app.post("/send", async (req, res) => {
   const { username, message } = req.body;
   const text = message.trim().toLowerCase();
@@ -37,6 +36,7 @@ app.post("/send", async (req, res) => {
     client.res.write(`data: ${JSON.stringify(userMsg)}\n\n`);
   });
 
+  // 🤖 Bot logic
   if (text.includes("hi") || text.includes("hello")) {
     botMessage = `Hello ${username}! Welcome to Aldo 🌿\n\nHow can I assist you?\n1️⃣ Sustainability Planning\n2️⃣ Climate Risk Tools\n3️⃣ Compliance Support\n4️⃣ Learn More\n5️⃣ Contact Us`;
   } else if (text === "1") {
@@ -50,8 +50,9 @@ app.post("/send", async (req, res) => {
   } else if (text === "5") {
     botMessage = `📞 Contact Us:\n- a) Request Consultation\n- b) Speak to an Expert\n- c) Download Brochure\n(Type a, b, or c)`;
   } else if (["a", "b", "c", "d"].includes(text)) {
-    botMessage = "ℹ️ Option selected. Could you tell me which main category you're referring to (1, 2, 3, 4, or 5)?";
+    botMessage = `ℹ️ Option selected. Could you tell me which main category you're referring to (1, 2, 3, 4, or 5)?`;
 
+    // ✅ Send email notification
     try {
       await transporter.sendMail({
         from: process.env.EMAIL,
@@ -75,23 +76,28 @@ app.post("/send", async (req, res) => {
   res.status(200).end();
 });
 
-// ✅ GET /stream
+// ✅ GET /stream — SSE with heartbeat
 app.get("/stream", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
-  res.setHeader("Access-Control-Allow-Origin", "*"); // 🚨 REQUIRED for Vercel
-
+  res.setHeader("Access-Control-Allow-Origin", "*");
   res.flushHeaders();
 
   clients.push({ res });
 
+  // 💓 Heartbeat every 25s
+  const heartbeat = setInterval(() => {
+    res.write(':\n\n');
+  }, 25000);
+
   req.on("close", () => {
+    clearInterval(heartbeat);
     clients = clients.filter(c => c.res !== res);
   });
 });
 
-// ✅ Start
+// ✅ Start server
 app.listen(PORT, () => {
   console.log(`✅ EPAR Bot backend running on port ${PORT}`);
 });
