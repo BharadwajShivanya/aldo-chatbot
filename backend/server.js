@@ -1,7 +1,8 @@
 require('dotenv').config();
-
 const express = require("express");
 const cors = require("cors");
+const nodemailer = require("nodemailer");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -10,7 +11,16 @@ let clients = [];
 app.use(cors());
 app.use(express.json());
 
-app.post("/send", (req, res) => {
+// Nodemailer config
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL,       // from .env
+    pass: process.env.EMAIL_PASS   // from .env
+  }
+});
+
+app.post("/send", async (req, res) => {
   const { username, message } = req.body;
 
   const userMsg = { username, message };
@@ -21,6 +31,7 @@ app.post("/send", (req, res) => {
   const text = message.trim().toLowerCase();
   let botMessage = "";
 
+  // Menu logic
   if (text.includes("hi") || text.includes("hello")) {
     botMessage = `Hello ${username}! Welcome to Aldo 🌿\n\nHow can I assist you?\n1️⃣ Sustainability Planning\n2️⃣ Climate Risk Tools\n3️⃣ Compliance Support\n4️⃣ Learn More\n5️⃣ Contact Us`;
   } else if (text === "1") {
@@ -35,6 +46,19 @@ app.post("/send", (req, res) => {
     botMessage = `📞 Contact Us:\n- a) Request Consultation\n- b) Speak to an Expert\n- c) Download Brochure\n(Type a, b, or c)`;
   } else if (["a", "b", "c", "d"].includes(text)) {
     botMessage = "ℹ️ Option selected. Could you tell me which main category you're referring to (1, 2, 3, 4, or 5)?";
+
+    // ✅ SEND EMAIL when user chooses an option after '5' (e.g., 5c)
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL,
+        to: "shivanya.b@infera.in",
+        subject: `Aldo Bot: User Inquiry`,
+        text: `User ${username} selected option: ${message}`
+      });
+      console.log("📩 Email sent successfully.");
+    } catch (err) {
+      console.error("❌ Email failed to send:", err);
+    }
   } else {
     botMessage = `Thanks for your message, ${username}. Please choose one of the options from the menu. Type "hi" to start over.`;
   }
@@ -51,6 +75,7 @@ app.post("/send", (req, res) => {
   res.status(200).end();
 });
 
+// Streaming endpoint
 app.get("/stream", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -64,6 +89,7 @@ app.get("/stream", (req, res) => {
   });
 });
 
+// Server start
 app.listen(PORT, () => {
   console.log(`✅ EPAR Bot backend running on http://localhost:${PORT}`);
 });
