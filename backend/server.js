@@ -36,20 +36,20 @@ app.post("/send", async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.MAIL_USER, // e.g. yourname@gmail.com
-        pass: process.env.MAIL_PASS  // app password
-      }
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS,
+      },
     });
 
     const mailOptions = {
       from: process.env.MAIL_USER,
       to: "shivanya.b@infera.in",
       subject: "New Chatbot Query",
-      text: `User asked: ${query}`
+      text: `User asked: ${query}`,
     };
 
     await transporter.sendMail(mailOptions);
-    console.log("✅ Real email sent to shivanya.b@infera.in");
+    console.log("✅ Email sent to shivanya.b@infera.in");
     res.status(200).send("Email sent");
   } catch (error) {
     console.error("❌ Failed to send email:", error);
