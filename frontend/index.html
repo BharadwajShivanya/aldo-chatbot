@@ -1,266 +1,213 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ALDO Chat</title>
   <style>
     body {
-      margin: 0; padding: 0;
-      font-family: sans-serif;
-      background: #0f2027;
-      display: flex; justify-content: center; align-items: center;
-      height: 100vh; color: white;
-    }
-    .chat-box {
-      width: 400px; height: 600px;
-      background: #1b3b4f;
-      border-radius: 12px; overflow: hidden;
-      display: flex; flex-direction: column;
-    }
-    .messages {
-      flex: 1; padding: 10px;
-      overflow-y: auto;
-      display: flex; flex-direction: column; gap: 10px;
-    }
-    .message {
-      padding: 10px 14px;
-      border-radius: 12px;
-      max-width: 70%;
-      word-wrap: break-word;
-      white-space: pre-line; /* This allows line breaks */
-    }
-    .sent { align-self: flex-end; background: #43cea2; color: black; }
-    .received { align-self: flex-start; background: #78ffd6; color: black; }
-    .chat-input {
-      display: flex; flex-direction: column;
-      padding: 10px; background: #144552;
-    }
-    input {
-      padding: 10px; margin-bottom: 8px;
-      border: none; border-radius: 6px;
-      background: #f1f1f1;
-    }
-    button {
-      padding: 10px; background: #0072ff;
-      color: white; border: none; border-radius: 6px;
-      cursor: pointer;
-    }
-  </style>
-</head>
-<body>
-  <div class="chat-box">
-    <div class="messages" id="chat"></div>
-    <div class="chat-input">
-      <input type="text" id="username" placeholder="Your Name" />
-      <input type="text" id="message" placeholder="Type your message..." />
-      <button onclick="sendMessage()">Send</button>
-    </div>
-  </div>
-
-  <script>
-    const chat = document.getElementById('chat');
-
-    const eventSource = new EventSource('http://localhost:3000/stream');
-    eventSource.onmessage = function(event) {
-      const data = JSON.parse(event.data);
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'message ' + (data.username === getUsername() ? 'sent' : 'received');
-      msgDiv.innerHTML = `<strong>${data.username}:</strong><br>${data.message.replace(/\n/g, '<br>')}`;
-      chat.appendChild(msgDiv);
-      chat.scrollTop = chat.scrollHeight;
-    };
-
-    function getUsername() {
-      return document.getElementById('username').value.trim() || 'Anonymous';
-    }
-
-    function sendMessage() {
-      const username = getUsername();
-      const message = document.getElementById('message').value.trim();
-      if (!message) return;
-
-      fetch('http://localhost:3000/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, message })
-      });
-
-      document.getElementById('message').value = '';
-    }
-  </script>
-</body>
-</html>
- -->
-
- <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>ALDO Chat</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       margin: 0;
       padding: 0;
-      font-family: "Segoe UI", sans-serif;
-      background: linear-gradient(to right, #2c3e50, #4ca1af);
       display: flex;
-      justify-content: center;
       align-items: center;
+      justify-content: center;
       height: 100vh;
     }
 
-    .chat-box {
-      width: 400px;
-      height: 600px;
-      background: #00202f;
+    #chat-container {
+      width: 100%;
+      max-width: 420px;
+      background: #001d2f;
       border-radius: 16px;
-      overflow: hidden;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.25);
       display: flex;
       flex-direction: column;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.4);
+      height: 90vh;
+      overflow: hidden;
     }
 
-    .chat-header {
-      background: linear-gradient(135deg, #43cea2, #185a9d);
-      padding: 12px 16px;
+    #chat-header {
+      background: linear-gradient(90deg, #11998e, #38ef7d);
       color: white;
-      font-weight: bold;
-      font-size: 18px;
+      padding: 12px 16px;
       display: flex;
       align-items: center;
-      gap: 10px;
-    }
-
-    .chat-header img {
-      width: 24px;
-      height: 24px;
-    }
-
-    .messages {
-      flex: 1;
-      padding: 14px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
       gap: 12px;
-      color: #fff;
-    }
-
-    .message {
-      padding: 10px 14px;
-      border-radius: 14px;
-      max-width: 75%;
-      word-wrap: break-word;
-    }
-
-    .sent {
-      align-self: flex-end;
-      background: #43cea2;
-      color: black;
-    }
-
-    .received {
-      align-self: flex-start;
-      background: #78ffd6;
-      color: black;
-    }
-
-    .chat-input {
-      background: #0b2e3f;
-      padding: 12px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    input {
-      padding: 10px 12px;
-      border-radius: 20px;
-      border: none;
-      outline: none;
-      background-color: #1c3d4d;
-      color: white;
-    }
-
-    input::placeholder {
-      color: #a9bfc9;
+      justify-content: center;
     }
 
     .logo {
-    height: 60px; /* You can increase this */
-    width: 120px;
-    margin-right: 10px;
-    display: block;
-  }
-
-
-
-    button {
-      padding: 12px;
-      background: linear-gradient(to right, #43cea2, #0072ff);
-      border: none;
-      border-radius: 20px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.3s ease;
+      height: 60px;
+      width: 60px;
+      border-radius: 50%;
+      object-fit: cover;
     }
 
-    button:hover {
-      opacity: 0.9;
+    .header-title {
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    #chat-messages {
+      flex-grow: 1;
+      padding: 20px 16px;
+      overflow-y: auto;
+      background: #001d2f;
+      color: white;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin: 10px 0;
+      max-width: 75%;
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .bot {
+      background: #54f3c0;
+      align-self: flex-start;
+      color: #00251a;
+      border-bottom-left-radius: 0;
+    }
+
+    .user {
+      background: #1dc0a0;
+      align-self: flex-end;
+      color: white;
+      border-bottom-right-radius: 0;
+    }
+
+    #options {
+      padding: 16px;
+      background: #001824;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-top: 1px solid #003344;
+    }
+
+    button.option {
+      background: #11998e;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button.option:hover {
+      background: #0e877e;
     }
   </style>
 </head>
 <body>
-  <div class="chat-box">
-    <div class="chat-header">
-      <img src="a.png" alt="ALDO Logo" class="logo"/>
-
-
-      ALDO Chat
+  <div id="chat-container">
+    <div id="chat-header">
+      <img src="a.png" alt="ALDO Logo" class="logo" />
+      <span class="header-title">ALDO Support</span>
     </div>
-    <div class="messages" id="chat"></div>
-    <div class="chat-input">
-      <input type="text" id="username" placeholder="Your name" />
-      <input type="text" id="message" placeholder="Type your message..." />
-      <button onclick="sendMessage()">Send</button>
-    </div>
+    <div id="chat-messages"></div>
+    <div id="options"></div>
   </div>
 
   <script>
-    const chat = document.getElementById('chat');
+    const messagesDiv = document.getElementById("chat-messages");
+    const optionsDiv = document.getElementById("options");
 
-    const eventSource = new EventSource('https://aldo-chatbot-production.up.railway.app/stream');
-    eventSource.onmessage = function(event) {
-      const data = JSON.parse(event.data);
-      const msgDiv = document.createElement('div');
-      msgDiv.className = 'message ' + (data.username === getUsername() ? 'sent' : 'received');
-      msgDiv.textContent = `${data.username}: ${data.message}`;
-      chat.appendChild(msgDiv);
-      chat.scrollTop = chat.scrollHeight;
+    const addMessage = (text, sender) => {
+      const msg = document.createElement("div");
+      msg.className = "message " + sender;
+      msg.innerText = text;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
     };
 
-    function getUsername() {
-      return document.getElementById('username').value.trim() || 'Anonymous';
-    }
+    const sendToBackend = (query) => {
+      console.log("📨 Simulated email sent to shivanya.b@infera.in with query:", query);
+    };
 
-    function sendMessage() {
-      const username = getUsername();
-      const message = document.getElementById('message').value.trim();
-      if (!message) return;
+    const botReplies = {
+      start: {
+        message: "Hi! I'm ALDO Bot 🌿 How can I assist you with climate and sustainability today?",
+        options: [
+          "Sustainability",
+          "Product Materials",
+          "Recycling",
+          "Compliance Support",
+          "Learn More",
+          "Contact ALDO"
+        ]
+      },
+      Sustainability: {
+        message: "We help reduce environmental impact and support sustainable operations. What do you want to explore?",
+        options: ["Carbon Footprint", "Green Certifications", "Sustainability Reports"]
+      },
+      "Product Materials": {
+        message: "We can help identify sustainable materials for your product design.",
+        options: ["Eco-friendly Alternatives", "Material Sourcing", "Material Compliance"]
+      },
+      Recycling: {
+        message: "We provide end-to-end recycling solutions. What are you interested in?",
+        options: ["Recycling Programs", "E-waste Handling", "Circular Economy"]
+      },
+      "Compliance Support": {
+        message: "We offer compliance for ESG regulations. Choose a topic:",
+        options: ["Australian Regulations", "EU Compliance", "Documentation Help"]
+      },
+      "Learn More": {
+        message: "You can visit: https://epar.com.au/climate-sustainability/",
+        options: ["Go Back"]
+      },
+      "Contact ALDO": {
+        message: "You can email us at hello@aldo.com.au or fill the contact form on our website.",
+        options: ["Go Back"]
+      },
+      "Go Back": () => botStep("start")
+    };
 
-      fetch('https://aldo-chatbot-production.up.railway.app/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, message })
-      });
+    const botStep = (step) => {
+      optionsDiv.innerHTML = "";
+      const data = botReplies[step];
 
-      document.getElementById('message').value = '';
-    }
+      if (typeof data === "function") {
+        data();
+        return;
+      }
+
+      if (data?.message) addMessage("ALDO: " + data.message, "bot");
+
+      if (data?.options) {
+        data.options.forEach(opt => {
+          const btn = document.createElement("button");
+          btn.className = "option";
+          btn.innerText = opt;
+          btn.onclick = () => handleUserSelection(opt);
+          optionsDiv.appendChild(btn);
+        });
+      }
+    };
+
+    const handleUserSelection = (text) => {
+      addMessage(text, "user");
+      if (botReplies[text]) {
+        botStep(text);
+      } else {
+        addMessage("ALDO: I have asked the required person to look into it.", "bot");
+        sendToBackend(text);
+        botStep("start");
+      }
+    };
+
+    botStep("start");
   </script>
 </body>
 </html>
