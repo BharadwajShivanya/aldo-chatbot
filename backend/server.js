@@ -98,15 +98,25 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 let clients = [];
 
+const allowedOrigins = [
+  "https://aldo-chatbot.vercel.app",
+  "https://aldo-chatbot-git-main-shivanyas-projects-f3ba16ef.vercel.app",
+  "https://aldo-chatbot-l1naf6or7-shivanyas-projects-f3ba16ef.vercel.app"
+];
+
 app.use(cors({
-  origin: [
-    "https://aldo-chatbot.vercel.app",
-    "https://aldo-chatbot-git-main-shivanyas-projects-f3ba16ef.vercel.app",
-    "https://aldo-chatbot-l1naf6or7-shivanyas-projects-f3ba16ef.vercel.app"
-  ],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
   methods: ["GET", "POST"],
-  credentials: false,
+  allowedHeaders: ["Content-Type"],
+  optionsSuccessStatus: 200
 }));
+
 
 app.use(express.json());
 
