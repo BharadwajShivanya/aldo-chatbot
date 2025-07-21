@@ -17,30 +17,46 @@
 //   console.log("✅ EPAR Bot backend running on port", PORT);
 // });
 
-const nodemailer = require('nodemailer');
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const nodemailer = require("nodemailer");
+require("dotenv").config();
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.post('/send-email', async (req, res) => {
-  const { userMessage } = req.body;
+app.use(cors());
+app.use(bodyParser.json());
+
+app.post("/send", async (req, res) => {
+  const { query } = req.body;
 
   try {
-    await transporter.sendMail({
-      from: `"EPAR Chatbot" <${process.env.EMAIL}>`,
-      to: process.env.EMAIL,
-      subject: 'New Chatbot Query',
-      text: `User asked: ${userMessage}`,
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.MAIL_USER, // e.g. yourname@gmail.com
+        pass: process.env.MAIL_PASS  // app password
+      }
     });
 
-    res.status(200).json({ success: true, message: 'Email sent' });
+    const mailOptions = {
+      from: process.env.MAIL_USER,
+      to: "shivanya.b@infera.in",
+      subject: "New Chatbot Query",
+      text: `User asked: ${query}`
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("✅ Real email sent to shivanya.b@infera.in");
+    res.status(200).send("Email sent");
   } catch (error) {
-    console.error('Email error:', error);
-    res.status(500).json({ success: false, message: 'Email failed' });
+    console.error("❌ Failed to send email:", error);
+    res.status(500).send("Email failed");
   }
+});
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
