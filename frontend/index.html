@@ -344,8 +344,9 @@
       const message = input.value.trim();
       if (!message) return;
       addMessage(message, "user");
+      fetch("http://localhost:3000/send", {
 
-      fetch("https://aldo-chatbot-production.up.railway.app/send", {
+    //  fetch("https://aldo-chatbot-production.up.railway.app/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: "User", message })
@@ -362,7 +363,9 @@
     });
 
     const connectSSE = () => {
-      const eventSource = new EventSource("https://aldo-chatbot-production.up.railway.app/stream");
+     const eventSource = new EventSource("http://localhost:3000/stream");
+
+     // const eventSource = new EventSource("https://aldo-chatbot-production.up.railway.app/stream");
       eventSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
         if ((data.username || "").toLowerCase().includes("bot")) {
