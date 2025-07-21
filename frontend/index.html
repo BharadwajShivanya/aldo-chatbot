@@ -189,120 +189,198 @@
   </script>
 </body>
 </html>
- -->
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>🌿 Aldo Chatbot</title>
+  <title>ALDO Chat</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
       margin: 0;
       padding: 0;
-    }
-    .chat-container {
-      max-width: 600px;
-      margin: 50px auto;
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .message {
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 8px;
-    }
-    .user {
-      background: #daf1ff;
-      text-align: right;
-    }
-    .bot {
-      background: #e0ffe0;
-      text-align: left;
-    }
-    .input-area {
       display: flex;
-      gap: 10px;
-      margin-top: 20px;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
-    input, button {
-      padding: 10px;
-      font-size: 16px;
+
+    #chat-container {
+      width: 100%;
+      max-width: 460px;
+      background: #001d2f;
+      border-radius: 20px;
+      box-shadow: 0 16px 32px rgba(0,0,0,0.25);
+      display: flex;
+      flex-direction: column;
+      height: 92vh;
+      overflow: hidden;
     }
-    #status {
-      color: red;
+
+    #chat-header {
+      background: linear-gradient(90deg, #11998e, #38ef7d);
+      color: white;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      height: 64px;
+      width: 64px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .header-title {
+      font-size: 26px;
       font-weight: bold;
-      margin-top: 10px;
+    }
+
+    #chat-messages {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #001d2f;
+      color: white;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message {
+      margin: 8px 0;
+      max-width: 75%;
+      padding: 14px 18px;
+      border-radius: 18px;
+      font-size: 15px;
+      line-height: 1.5;
+      word-break: break-word;
+    }
+
+    .bot {
+      background: #a6fdd2;
+      color: #003b2a;
+      align-self: flex-start;
+      border-bottom-left-radius: 0;
+    }
+
+    .user {
+      background: #1dc0a0;
+      align-self: flex-end;
+      color: white;
+      border-bottom-right-radius: 0;
+    }
+
+    #options {
+      padding: 16px;
+      background: #001824;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      border-top: 1px solid #003344;
+    }
+
+    button.option {
+      background: #11998e;
+      color: white;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button.option:hover {
+      background: #0e877e;
     }
   </style>
 </head>
 <body>
-
-  <div class="chat-container">
-    <h2>🌿 Aldo Chatbot</h2>
-    <div id="chat"></div>
-
-    <div class="input-area">
-      <input type="text" id="username" placeholder="Your name" />
-      <input type="text" id="message" placeholder="Type your message" />
-      <button onclick="sendMessage()">Send</button>
+  <div id="chat-container">
+    <div id="chat-header">
+      <img src="a.png" alt="ALDO Logo" class="logo" />
+      <span class="header-title">ALDO Support</span>
     </div>
-
-    <p id="status"></p>
+    <div id="chat-messages"></div>
+    <div id="options"></div>
   </div>
 
   <script>
-    const chatDiv = document.getElementById("chat");
-    const statusText = document.getElementById("status");
+    const messagesDiv = document.getElementById("chat-messages");
+    const optionsDiv = document.getElementById("options");
+    const API_URL = "https://aldo-chatbot-production.up.railway.app";
 
-    const BACKEND_URL = "https://aldo-chatbot-production.up.railway.app";
+    let username = prompt("Enter your name:") || "User";
 
-    let eventSource;
+    const addMessage = (text, sender) => {
+      const msg = document.createElement("div");
+      msg.className = "message " + sender;
+      msg.innerText = text;
+      messagesDiv.appendChild(msg);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    };
 
-    function connectStream() {
-      if (eventSource) eventSource.close();
+    const sendMessage = (message) => {
+      addMessage(message, "user");
 
-      eventSource = new EventSource(`${BACKEND_URL}/stream`);
-
-      eventSource.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        const div = document.createElement("div");
-        div.className = `message ${data.username === "EPAR Bot" ? "bot" : "user"}`;
-        div.textContent = `${data.username}: ${data.message}`;
-        chatDiv.appendChild(div);
-        chatDiv.scrollTop = chatDiv.scrollHeight;
-        statusText.textContent = "";
-      };
-
-      eventSource.onerror = () => {
-        statusText.textContent = "⚠️ Disconnected from server. Retrying...";
-        setTimeout(connectStream, 3000); // retry in 3s
-      };
-    }
-
-    connectStream();
-
-    function sendMessage() {
-      const username = document.getElementById("username").value.trim();
-      const message = document.getElementById("message").value.trim();
-      if (!username || !message) return;
-
-      fetch(`${BACKEND_URL}/send`, {
+      fetch(`${API_URL}/send`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json"
         },
-        body: JSON.stringify({ username, message }),
-      }).then(() => {
-        document.getElementById("message").value = "";
-      }).catch(() => {
-        statusText.textContent = "❌ Failed to send message.";
+        body: JSON.stringify({ username, message })
+      }).catch(err => {
+        addMessage("❌ Failed to send message. Try again later.", "bot");
+        console.error(err);
       });
-    }
+    };
+
+    const setupStream = () => {
+      let retrying = false;
+
+      const connect = () => {
+        const eventSource = new EventSource(`${API_URL}/stream`);
+
+        eventSource.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          if (data.username === "EPAR Bot" || data.username === "Aldo Bot") {
+            addMessage(data.message, "bot");
+          } else {
+            addMessage(`${data.username}: ${data.message}`, "user");
+          }
+          retrying = false;
+        };
+
+        eventSource.onerror = () => {
+          if (!retrying) {
+            addMessage("⚠️ Disconnected. Retrying...", "bot");
+            retrying = true;
+          }
+          setTimeout(() => {
+            eventSource.close();
+            connect();
+          }, 3000);
+        };
+      };
+
+      connect();
+    };
+
+    const options = ["Hi", "1", "2", "3", "4", "5", "a", "b", "c"];
+    options.forEach(opt => {
+      const btn = document.createElement("button");
+      btn.className = "option";
+      btn.innerText = opt;
+      btn.onclick = () => sendMessage(opt);
+      optionsDiv.appendChild(btn);
+    });
+
+    setupStream();
   </script>
 </body>
 </html>
