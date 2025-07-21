@@ -352,7 +352,7 @@
       const eventSource = new EventSource("https://aldo-chatbot-production.up.railway.app/stream");
       eventSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        if (data.username === "ALDO Bot") {
+        if (data.username === "EPAR Bot") {
           addMessage(data.message, "bot");
         }
       };
