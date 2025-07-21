@@ -8,15 +8,16 @@ const PORT = process.env.PORT || 3000;
 
 let clients = [];
 
-// ✅ Enable CORS for production
+// ✅ CORS setup
 app.use(cors({
-  origin: "*", // or your Vercel domain for tighter security
+  origin: "https://aldo-chatbot-uw7d.vercel.app", // Replace with your actual frontend
   methods: ["GET", "POST"],
+  credentials: true
 }));
 
 app.use(express.json());
 
-// ✅ Email transporter setup
+// ✅ Nodemailer
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -25,7 +26,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// ✅ POST /send — handles incoming chat messages
+// ✅ POST /send
 app.post("/send", async (req, res) => {
   const { username, message } = req.body;
   const text = message.trim().toLowerCase();
@@ -36,7 +37,6 @@ app.post("/send", async (req, res) => {
     client.res.write(`data: ${JSON.stringify(userMsg)}\n\n`);
   });
 
-  // 🤖 Chat logic
   if (text.includes("hi") || text.includes("hello")) {
     botMessage = `Hello ${username}! Welcome to Aldo 🌿\n\nHow can I assist you?\n1️⃣ Sustainability Planning\n2️⃣ Climate Risk Tools\n3️⃣ Compliance Support\n4️⃣ Learn More\n5️⃣ Contact Us`;
   } else if (text === "1") {
@@ -52,7 +52,6 @@ app.post("/send", async (req, res) => {
   } else if (["a", "b", "c", "d"].includes(text)) {
     botMessage = "ℹ️ Option selected. Could you tell me which main category you're referring to (1, 2, 3, 4, or 5)?";
 
-    // ✅ Send email when specific options selected
     try {
       await transporter.sendMail({
         from: process.env.EMAIL,
@@ -76,11 +75,13 @@ app.post("/send", async (req, res) => {
   res.status(200).end();
 });
 
-// ✅ GET /stream — SSE setup
+// ✅ GET /stream
 app.get("/stream", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("Access-Control-Allow-Origin", "*"); // 🚨 REQUIRED for Vercel
+
   res.flushHeaders();
 
   clients.push({ res });
@@ -90,7 +91,7 @@ app.get("/stream", (req, res) => {
   });
 });
 
-// ✅ Start server
+// ✅ Start
 app.listen(PORT, () => {
   console.log(`✅ EPAR Bot backend running on port ${PORT}`);
 });
