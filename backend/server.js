@@ -113,7 +113,9 @@ app.use((req, res, next) => {
 const allowedOrigins = [
   "https://aldo-chatbot.vercel.app",
   "https://aldo-chatbot-git-main-shivanyas-projects-f3ba16ef.vercel.app",
-  "https://aldo-chatbot-l1naf6or7-shivanyas-projects-f3ba16ef.vercel.app"
+  "https://aldo-chatbot-l1naf6or7-shivanyas-projects-f3ba16ef.vercel.app",
+  "https://aldo-chatbot-uw7d.vercel.app"
+
 ];
 
 app.use(cors({
