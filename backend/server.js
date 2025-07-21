@@ -89,6 +89,7 @@
 // app.listen(PORT, () => {
 //   console.log(`✅ EPAR Bot backend running on port ${PORT}`);
 // });
+// server.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -96,13 +97,14 @@ const nodemailer = require("nodemailer");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-let clients = [];
+
+// 🔥 Debug log
 app.use((req, res, next) => {
-  console.log("🔥 Incoming request:", req.method, req.path, req.headers.origin);
+  console.log("🔥 Request:", req.method, req.path, req.headers.origin);
   next();
 });
 
-// ✅ CORS setup with whitelist
+// ✅ CORS Setup
 const allowedOrigins = [
   "https://aldo-chatbot.vercel.app",
   "https://aldo-chatbot-git-main-shivanyas-projects-f3ba16ef.vercel.app",
@@ -121,89 +123,50 @@ app.use(cors({
   allowedHeaders: ["Content-Type"],
   optionsSuccessStatus: 200
 }));
+
 app.use(express.json());
 
+// ✅ Basic route to test backend
 app.get("/", (req, res) => {
   res.send("✅ EPAR Bot backend is running.");
 });
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASS,
-  },
-});
-
+// ✅ Email route
 app.post("/send", async (req, res) => {
-  const { username, message } = req.body;
-  const text = message.trim().toLowerCase();
-  let botMessage = "";
+  const { name, message } = req.body;
 
-  const userMsg = { username, message };
-  clients.forEach(client => {
-    client.res.write(`data: ${JSON.stringify(userMsg)}\n\n`);
-  });
-
-  // Bot logic
-  if (text.includes("hi") || text.includes("hello")) {
-    botMessage = `Hello ${username}! Welcome to Aldo 🌿\n\nHow can I assist you?\n1️⃣ Sustainability Planning\n2️⃣ Climate Risk Tools\n3️⃣ Compliance Support\n4️⃣ Learn More\n5️⃣ Contact Us`;
-  } else if (text === "1") {
-    botMessage = `🌱 Sustainability Planning:\n- a) Carbon Footprint\n- b) Water Management\n- c) Biodiversity Planning\n- d) Action Plan`;
-  } else if (text === "2") {
-    botMessage = `🌍 Climate Risk Tools:\n- a) Risk Assessments\n- b) Adaptation Plans\n- c) Scenario Planning`;
-  } else if (text === "3") {
-    botMessage = `📊 Compliance Support:\n- a) Environmental Regulations\n- b) Reporting Tools\n- c) Risk Registers`;
-  } else if (text === "4") {
-    botMessage = `📚 Learn More:\n- a) What is Aldo?\n- b) ESG & Sustainability\n- c) Workshops & Training`;
-  } else if (text === "5") {
-    botMessage = `📞 Contact Us:\n- a) Request Consultation\n- b) Speak to an Expert\n- c) Download Brochure`;
-  } else if (["a", "b", "c", "d"].includes(text)) {
-    botMessage = `ℹ️ Thanks! Please reply with the main category number (1-5) you're interested in.`;
-
-    try {
-      await transporter.sendMail({
-        from: process.env.EMAIL,
-        to: "shivanya.b@infera.in",
-        subject: "ALDO Bot Inquiry",
-        text: `User ${username} selected option: ${message}`,
-      });
-      console.log("📩 Email sent");
-    } catch (error) {
-      console.error("❌ Email failed:", error);
-    }
-  } else {
-    botMessage = `Thanks ${username}, please pick an option. Type "hi" to restart.`;
+  if (!name || !message) {
+    return res.status(400).json({ error: "Name and message required" });
   }
 
-  const botReply = { username: "EPAR Bot", message: botMessage };
-  clients.forEach(client => {
-    client.res.write(`data: ${JSON.stringify(botReply)}\n\n`);
-  });
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.EMAIL_PASS
+      }
+    });
 
-  res.status(200).end();
+    await transporter.sendMail({
+      from: process.env.EMAIL,
+      to: "shivanya.b@infera.in",
+      subject: `EPAR Bot Query from ${name}`,
+      text: message
+    });
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("❌ Email Error:", err);
+    res.status(500).json({ error: "Failed to send email" });
+  }
 });
 
-app.get("/stream", (req, res) => {
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Connection", "keep-alive");
-  res.flushHeaders();
-
-  // Send a keep-alive ping every 30s to prevent disconnection
-  const keepAlive = setInterval(() => {
-    res.write(":\n\n");
-  }, 30000);
-
-  clients.push({ res });
-
-  req.on("close", () => {
-    clearInterval(keepAlive);
-    clients = clients.filter(c => c.res !== res);
-  });
-});
+// ✅ Keep-alive so Railway doesn’t stop it
+setInterval(() => {
+  console.log("🔁 Keep-alive ping");
+}, 5 * 60 * 1000);
 
 app.listen(PORT, () => {
   console.log(`✅ EPAR Bot backend running on port ${PORT}`);
 });
-
