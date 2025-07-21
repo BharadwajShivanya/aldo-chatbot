@@ -114,7 +114,8 @@ const allowedOrigins = [
   "https://aldo-chatbot-git-main-shivanyas-projects-f3ba16ef.vercel.app",
   "https://aldo-chatbot-l1naf6or7-shivanyas-projects-f3ba16ef.vercel.app",
   "https://aldo-chatbot-uw7d.vercel.app",
-  "http://localhost:3000" // for local dev if needed
+  "http://localhost:3000",
+  undefined// for local dev if needed
 ];
 
 app.use(cors({
