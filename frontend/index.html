@@ -236,6 +236,7 @@
     #status {
       color: red;
       font-weight: bold;
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -260,21 +261,30 @@
 
     const BACKEND_URL = "https://aldo-chatbot-production.up.railway.app";
 
-    const eventSource = new EventSource(`${BACKEND_URL}/stream`);
+    let eventSource;
 
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      const div = document.createElement("div");
-      div.className = `message ${data.username === "EPAR Bot" ? "bot" : "user"}`;
-      div.textContent = `${data.username}: ${data.message}`;
-      chatDiv.appendChild(div);
-      chatDiv.scrollTop = chatDiv.scrollHeight;
-      statusText.textContent = ""; // clear error if any
-    };
+    function connectStream() {
+      if (eventSource) eventSource.close();
 
-    eventSource.onerror = () => {
-      statusText.textContent = "⚠️ Disconnected from server.";
-    };
+      eventSource = new EventSource(`${BACKEND_URL}/stream`);
+
+      eventSource.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        const div = document.createElement("div");
+        div.className = `message ${data.username === "EPAR Bot" ? "bot" : "user"}`;
+        div.textContent = `${data.username}: ${data.message}`;
+        chatDiv.appendChild(div);
+        chatDiv.scrollTop = chatDiv.scrollHeight;
+        statusText.textContent = "";
+      };
+
+      eventSource.onerror = () => {
+        statusText.textContent = "⚠️ Disconnected from server. Retrying...";
+        setTimeout(connectStream, 3000); // retry in 3s
+      };
+    }
+
+    connectStream();
 
     function sendMessage() {
       const username = document.getElementById("username").value.trim();
@@ -289,6 +299,8 @@
         body: JSON.stringify({ username, message }),
       }).then(() => {
         document.getElementById("message").value = "";
+      }).catch(() => {
+        statusText.textContent = "❌ Failed to send message.";
       });
     }
   </script>
