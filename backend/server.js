@@ -97,7 +97,12 @@ const nodemailer = require("nodemailer");
 const app = express();
 const PORT = process.env.PORT || 3000;
 let clients = [];
+app.use((req, res, next) => {
+  console.log("🔥 Incoming request:", req.method, req.path, req.headers.origin);
+  next();
+});
 
+// ✅ CORS setup with whitelist
 const allowedOrigins = [
   "https://aldo-chatbot.vercel.app",
   "https://aldo-chatbot-git-main-shivanyas-projects-f3ba16ef.vercel.app",
@@ -116,8 +121,6 @@ app.use(cors({
   allowedHeaders: ["Content-Type"],
   optionsSuccessStatus: 200
 }));
-
-
 app.use(express.json());
 
 app.get("/", (req, res) => {
