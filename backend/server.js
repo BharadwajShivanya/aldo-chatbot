@@ -28,7 +28,7 @@ app.post("/send", (req, res) => {
   } else if (text === "3") {
     botMessage = `📊 Compliance Support:\n- a) Environmental Regulations\n- b) Reporting Tools\n- c) Risk Registers\n(Type a, b, or c)`;
   } else if (text === "4") {
-    botMessage = `📚 Learn More:\n- a) What is EPAR?\n- b) ESG & Sustainability\n- c) Workshops & Training\n(Type a, b, or c)`;
+    botMessage = `📚 Learn More:\n- a) What is Aldo?\n- b) ESG & Sustainability\n- c) Workshops & Training\n(Type a, b, or c)`;
   } else if (text === "5") {
     botMessage = `📞 Contact Us:\n- a) Request Consultation\n- b) Speak to an Expert\n- c) Download Brochure\n(Type a, b, or c)`;
   } else if (["a", "b", "c", "d"].includes(text)) {
