@@ -90,6 +90,7 @@
 //   console.log(`✅ EPAR Bot backend running on port ${PORT}`);
 // });
 // server.js
+
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -98,13 +99,13 @@ const nodemailer = require("nodemailer");
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-// 🔥 Debug log
+// 🔥 Debug log middleware - add early
 app.use((req, res, next) => {
-  console.log("🔥 Request:", req.method, req.path, req.headers.origin);
+  console.log("🔥 Incoming request:", req.method, req.path, req.headers.origin);
   next();
 });
 
-// ✅ CORS Setup
+// ✅ CORS config
 const allowedOrigins = [
   "https://aldo-chatbot.vercel.app",
   "https://aldo-chatbot-git-main-shivanyas-projects-f3ba16ef.vercel.app",
@@ -126,47 +127,15 @@ app.use(cors({
 
 app.use(express.json());
 
-// ✅ Basic route to test backend
+// ✅ Basic route
 app.get("/", (req, res) => {
   res.send("✅ EPAR Bot backend is running.");
 });
 
-// ✅ Email route
-app.post("/send", async (req, res) => {
-  const { name, message } = req.body;
-
-  if (!name || !message) {
-    return res.status(400).json({ error: "Name and message required" });
-  }
-
-  try {
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    await transporter.sendMail({
-      from: process.env.EMAIL,
-      to: "shivanya.b@infera.in",
-      subject: `EPAR Bot Query from ${name}`,
-      text: message
-    });
-
-    res.json({ success: true });
-  } catch (err) {
-    console.error("❌ Email Error:", err);
-    res.status(500).json({ error: "Failed to send email" });
-  }
-});
-
-// ✅ Keep-alive so Railway doesn’t stop it
-setInterval(() => {
-  console.log("🔁 Keep-alive ping");
-}, 5 * 60 * 1000);
-
-app.listen(PORT, () => {
-  console.log(`✅ EPAR Bot backend running on port ${PORT}`);
-});
+try {
+  app.listen(PORT, () => {
+    console.log(`✅ EPAR Bot backend running on port ${PORT}`);
+  });
+} catch (err) {
+  console.error("❌ Failed to start server:", err);
+}
