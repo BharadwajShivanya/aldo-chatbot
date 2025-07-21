@@ -8,9 +8,15 @@ const PORT = process.env.PORT || 3000;
 
 let clients = [];
 
-app.use(cors());
+// ✅ Enable CORS for production
+app.use(cors({
+  origin: "*", // or your Vercel domain for tighter security
+  methods: ["GET", "POST"],
+}));
+
 app.use(express.json());
 
+// ✅ Email transporter setup
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -19,17 +25,18 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// ✅ POST /send — handles incoming chat messages
 app.post("/send", async (req, res) => {
   const { username, message } = req.body;
+  const text = message.trim().toLowerCase();
+  let botMessage = "";
 
   const userMsg = { username, message };
   clients.forEach(client => {
     client.res.write(`data: ${JSON.stringify(userMsg)}\n\n`);
   });
 
-  const text = message.trim().toLowerCase();
-  let botMessage = "";
-
+  // 🤖 Chat logic
   if (text.includes("hi") || text.includes("hello")) {
     botMessage = `Hello ${username}! Welcome to Aldo 🌿\n\nHow can I assist you?\n1️⃣ Sustainability Planning\n2️⃣ Climate Risk Tools\n3️⃣ Compliance Support\n4️⃣ Learn More\n5️⃣ Contact Us`;
   } else if (text === "1") {
@@ -44,6 +51,8 @@ app.post("/send", async (req, res) => {
     botMessage = `📞 Contact Us:\n- a) Request Consultation\n- b) Speak to an Expert\n- c) Download Brochure\n(Type a, b, or c)`;
   } else if (["a", "b", "c", "d"].includes(text)) {
     botMessage = "ℹ️ Option selected. Could you tell me which main category you're referring to (1, 2, 3, 4, or 5)?";
+
+    // ✅ Send email when specific options selected
     try {
       await transporter.sendMail({
         from: process.env.EMAIL,
@@ -52,8 +61,8 @@ app.post("/send", async (req, res) => {
         text: `User ${username} selected option: ${message}`
       });
       console.log("📩 Email sent");
-    } catch (error) {
-      console.error("❌ Failed to send email:", error);
+    } catch (err) {
+      console.error("❌ Failed to send email:", err);
     }
   } else {
     botMessage = `Thanks for your message, ${username}. Please choose one of the options from the menu. Type "hi" to start over.`;
@@ -67,6 +76,7 @@ app.post("/send", async (req, res) => {
   res.status(200).end();
 });
 
+// ✅ GET /stream — SSE setup
 app.get("/stream", (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
@@ -80,6 +90,7 @@ app.get("/stream", (req, res) => {
   });
 });
 
+// ✅ Start server
 app.listen(PORT, () => {
-  console.log(`✅ EPAR Bot backend running on http://localhost:${PORT}`);
+  console.log(`✅ EPAR Bot backend running on port ${PORT}`);
 });
