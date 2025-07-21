@@ -7,6 +7,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 let clients = [];
+const userStates = {};  // Track user's last main menu selection
 
 app.use(cors());
 app.use(express.json());
@@ -15,21 +16,26 @@ app.use(express.json());
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL,       // from .env
-    pass: process.env.EMAIL_PASS   // from .env
+    user: process.env.EMAIL,
+    pass: process.env.EMAIL_PASS
   }
 });
 
 app.post("/send", async (req, res) => {
   const { username, message } = req.body;
+  const text = message.trim().toLowerCase();
 
   const userMsg = { username, message };
   clients.forEach(client => {
     client.res.write(`data: ${JSON.stringify(userMsg)}\n\n`);
   });
 
-  const text = message.trim().toLowerCase();
   let botMessage = "";
+
+  // Track last selected main menu option (1–5)
+  if (["1", "2", "3", "4", "5"].includes(text)) {
+    userStates[username] = text;
+  }
 
   // Menu logic
   if (text.includes("hi") || text.includes("hello")) {
@@ -45,19 +51,23 @@ app.post("/send", async (req, res) => {
   } else if (text === "5") {
     botMessage = `📞 Contact Us:\n- a) Request Consultation\n- b) Speak to an Expert\n- c) Download Brochure\n(Type a, b, or c)`;
   } else if (["a", "b", "c", "d"].includes(text)) {
+    const lastCategory = userStates[username];
+
     botMessage = "ℹ️ Option selected. Could you tell me which main category you're referring to (1, 2, 3, 4, or 5)?";
 
-    // ✅ SEND EMAIL when user chooses an option after '5' (e.g., 5c)
-    try {
-      await transporter.sendMail({
-        from: process.env.EMAIL,
-        to: "shivanya.b@infera.in",
-        subject: `Aldo Bot: User Inquiry`,
-        text: `User ${username} selected option: ${message}`
-      });
-      console.log("📩 Email sent successfully.");
-    } catch (err) {
-      console.error("❌ Email failed to send:", err);
+    // ✅ Send email only if category was "5" (Contact Us)
+    if (lastCategory === "5") {
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL,
+          to: "shivanya.b@infera.in",
+          subject: `Aldo Bot Inquiry from ${username}`,
+          text: `User ${username} selected: Contact Us > ${text.toUpperCase()}`
+        });
+        console.log("📩 Email sent successfully.");
+      } catch (err) {
+        console.error("❌ Email failed to send:", err);
+      }
     }
   } else {
     botMessage = `Thanks for your message, ${username}. Please choose one of the options from the menu. Type "hi" to start over.`;
@@ -89,7 +99,7 @@ app.get("/stream", (req, res) => {
   });
 });
 
-// Server start
+// Start the server
 app.listen(PORT, () => {
   console.log(`✅ EPAR Bot backend running on http://localhost:${PORT}`);
 });
