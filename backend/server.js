@@ -102,50 +102,66 @@ if (!PORT) {
   throw new Error("❌ PORT environment variable not defined");
 }
 
-// 🔥 Debug log middleware
+// 🔥 Log all incoming requests
 app.use((req, res, next) => {
   console.log("🔥 Incoming request:", req.method, req.path, req.headers.origin);
   next();
 });
 
-// ✅ CORS config
+// ✅ CORS configuration
 const allowedOrigins = [
   "https://aldo-chatbot.vercel.app",
   "https://aldo-chatbot-git-main-shivanyas-projects-f3ba16ef.vercel.app",
   "https://aldo-chatbot-l1naf6or7-shivanyas-projects-f3ba16ef.vercel.app",
   "https://aldo-chatbot-uw7d.vercel.app",
-  "http://localhost:3000",
-  undefined// for local dev if needed
+  undefined // Allow server-side or local calls
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
-    console.log("🌐 CORS check origin:", origin);  // Log origin
+    console.log("🔍 CORS origin check:", origin);
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.error("❌ CORS rejected origin:", origin);
-      callback(new Error("Not allowed by CORS: " + origin));
+      callback(new Error("❌ Not allowed by CORS: " + origin));
     }
   },
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"],
-  optionsSuccessStatus: 200
+  credentials: true,
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
 }));
 
+// ✅ Handle CORS preflight requests
+app.options("*", cors());
+
+// ✅ Enable JSON parsing
 app.use(express.json());
 
-// ✅ Root route for health check
+// ✅ Root route
 app.get("/", (req, res) => {
   res.send("✅ EPAR Bot backend is running.");
 });
 
+// ✅ Simulated email sending route
+app.post("/send", async (req, res) => {
+  try {
+    const { message } = req.body;
+    console.log("📧 Message received to send via email:", message);
+
+    // Simulate email sending via console (you can integrate real SMTP later)
+    console.log("📨 Email simulated to: shivanya.b@infera.in");
+    res.json({ success: true, info: "Simulated email sent." });
+  } catch (err) {
+    console.error("❌ Failed to send email:", err);
+    res.status(500).json({ error: "Failed to send email." });
+  }
+});
+
 // ✅ Start server
 try {
-  app.listen(PORT, () => {
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`✅ EPAR Bot backend running on port ${PORT}`);
   });
 } catch (err) {
   console.error("❌ Failed to start server:", err);
 }
-
