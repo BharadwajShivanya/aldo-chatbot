@@ -99,7 +99,11 @@ const PORT = process.env.PORT || 3000;
 let clients = [];
 
 app.use(cors({
-  origin: "https://aldo-chatbot-uw7d.vercel.app", // Your frontend Vercel domain
+  origin: [
+    "https://aldo-chatbot.vercel.app",
+    "https://aldo-chatbot-git-main-shivanyas-projects-f3ba16ef.vercel.app",
+    "https://aldo-chatbot-l1naf6or7-shivanyas-projects-f3ba16ef.vercel.app"
+  ],
   methods: ["GET", "POST"],
   credentials: false,
 }));
