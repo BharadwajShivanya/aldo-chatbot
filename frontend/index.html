@@ -218,47 +218,130 @@
 </body>
 </html>
  -->
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const nodemailer = require("nodemailer");
-require("dotenv").config();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ALDO Support</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+    .chatbox {
+      width: 100%;
+      max-width: 400px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 10px;
+    }
+    .message {
+      margin: 10px 0;
+    }
+    .bot {
+      color: #444;
+    }
+    .user {
+      text-align: right;
+      color: blue;
+    }
+    .options button {
+      margin: 5px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h2>🧠 ALDO Support</h2>
+  <div class="chatbox" id="chat"></div>
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+  <script>
+    const chat = document.getElementById("chat");
 
-app.use(cors());
-app.use(bodyParser.json());
-
-app.post("/send", async (req, res) => {
-  const { query } = req.body;
-
-  try {
-    // Create transporter using Gmail SMTP
-    const transporter = nodemailer.createTransport({
-      service: "gmail",
-      auth: {
-        user: process.env.MAIL_USER,       // your Gmail address
-        pass: process.env.MAIL_PASS        // app password (not Gmail password)
+    const botReplies = {
+      start: {
+        text: "Hi, how can I help you today?",
+        options: ["Track my order", "Return a product", "Something else"]
+      },
+      "Track my order": {
+        text: "Please provide your order ID. (This is a mock reply.)"
+      },
+      "Return a product": {
+        text: "You can return products within 7 days. Would you like a return link?",
+        options: ["Yes", "No"]
+      },
+      Yes: {
+        text: "Here's your return link: https://aldo.com/returns"
+      },
+      No: {
+        text: "Okay, let me know if you need anything else."
       }
-    });
-
-    const mailOptions = {
-      from: process.env.MAIL_USER,
-      to: "shivanya.b@infera.in",
-      subject: "New Chatbot Query",
-      text: `User asked: ${query}`
     };
 
-    await transporter.sendMail(mailOptions);
-    console.log("✅ Real email sent to shivanya.b@infera.in");
-    res.status(200).send("Email sent");
-  } catch (error) {
-    console.error("❌ Failed to send email:", error);
-    res.status(500).send("Email failed");
-  }
-});
+    const addMessage = (text, sender = "bot") => {
+      const msg = document.createElement("div");
+      msg.className = `message ${sender}`;
+      msg.innerText = text;
+      chat.appendChild(msg);
+      chat.scrollTop = chat.scrollHeight;
+    };
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+    const addOptions = (options) => {
+      const container = document.createElement("div");
+      container.className = "options";
+      options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.innerText = option;
+        btn.onclick = () => handleUserSelection(option);
+        container.appendChild(btn);
+      });
+      chat.appendChild(container);
+      chat.scrollTop = chat.scrollHeight;
+    };
+
+    const handleUserSelection = (text) => {
+      addMessage(text, "user");
+      if (botReplies[text]) {
+        botStep(text);
+      } else {
+        addMessage("ALDO: I have asked the required person to look into it.", "bot");
+        sendToBackend(text);
+        botStep("start");
+      }
+    };
+
+    const botStep = (step) => {
+      const reply = botReplies[step];
+      if (reply) {
+        addMessage(reply.text, "bot");
+        if (reply.options) addOptions(reply.options);
+      }
+    };
+
+    const sendToBackend = async (text) => {
+      try {
+        await fetch("https://aldo-chatbot-production.up.railway.app/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query: text })
+        });
+      } catch (err) {
+        console.error("Failed to send to backend:", err);
+      }
+    };
+
+    botStep("start");
+  </script>
+</body>
+</html>
