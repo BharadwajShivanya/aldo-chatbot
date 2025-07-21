@@ -190,7 +190,7 @@
 </body>
 </html>
  -->
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -281,6 +281,7 @@
       border-radius: 20px;
       border: none;
       font-size: 14px;
+      outline: none;
     }
     #input-area button {
       background: #11998e;
@@ -327,34 +328,49 @@
     const messagesDiv = document.getElementById("chat-messages");
     const input = document.getElementById("user-input");
 
+    const scrollToBottom = () => {
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    };
+
     const addMessage = (text, sender) => {
       const msg = document.createElement("div");
       msg.className = "message " + sender;
       msg.innerText = text;
       messagesDiv.appendChild(msg);
-      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      scrollToBottom();
     };
 
     const sendMessage = () => {
       const message = input.value.trim();
       if (!message) return;
-
       addMessage(message, "user");
+
       fetch("https://aldo-chatbot-production.up.railway.app/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username: "User", message })
       });
+
       input.value = "";
     };
+
+    // Send on Enter key
+    input.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        sendMessage();
+      }
+    });
 
     const connectSSE = () => {
       const eventSource = new EventSource("https://aldo-chatbot-production.up.railway.app/stream");
       eventSource.onmessage = (e) => {
         const data = JSON.parse(e.data);
-        if (data.username === "EPAR Bot") {
+        if ((data.username || "").toLowerCase().includes("bot")) {
           addMessage(data.message, "bot");
         }
+      };
+      eventSource.onerror = () => {
+        addMessage("⚠️ Disconnected from server.", "bot");
       };
     };
 
