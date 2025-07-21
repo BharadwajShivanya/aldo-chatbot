@@ -90,7 +90,6 @@
 //   console.log(`✅ EPAR Bot backend running on port ${PORT}`);
 // });
 // server.js
-
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -103,7 +102,7 @@ if (!PORT) {
   throw new Error("❌ PORT environment variable not defined");
 }
 
-// 🔥 Debug log middleware - add early
+// 🔥 Debug log middleware
 app.use((req, res, next) => {
   console.log("🔥 Incoming request:", req.method, req.path, req.headers.origin);
   next();
@@ -114,16 +113,18 @@ const allowedOrigins = [
   "https://aldo-chatbot.vercel.app",
   "https://aldo-chatbot-git-main-shivanyas-projects-f3ba16ef.vercel.app",
   "https://aldo-chatbot-l1naf6or7-shivanyas-projects-f3ba16ef.vercel.app",
-  "https://aldo-chatbot-uw7d.vercel.app"
-
+  "https://aldo-chatbot-uw7d.vercel.app",
+  "http://localhost:3000" // for local dev if needed
 ];
 
 app.use(cors({
   origin: function (origin, callback) {
+    console.log("🌐 CORS check origin:", origin);  // Log origin
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error("Not allowed by CORS"));
+      console.error("❌ CORS rejected origin:", origin);
+      callback(new Error("Not allowed by CORS: " + origin));
     }
   },
   methods: ["GET", "POST"],
@@ -133,11 +134,12 @@ app.use(cors({
 
 app.use(express.json());
 
-// ✅ Basic route
+// ✅ Root route for health check
 app.get("/", (req, res) => {
   res.send("✅ EPAR Bot backend is running.");
 });
 
+// ✅ Start server
 try {
   app.listen(PORT, () => {
     console.log(`✅ EPAR Bot backend running on port ${PORT}`);
@@ -145,3 +147,4 @@ try {
 } catch (err) {
   console.error("❌ Failed to start server:", err);
 }
+
