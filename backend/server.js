@@ -16,12 +16,12 @@
 // app.listen(PORT, () => {
 //   console.log("✅ EPAR Bot backend running on port", PORT);
 // });
-
-const express = require("express");
-const cors = require("cors");
-const bodyParser = require("body-parser");
-const nodemailer = require("nodemailer");
-require("dotenv").config();
+import express from "express";
+import cors from "cors";
+import bodyParser from "body-parser";
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
