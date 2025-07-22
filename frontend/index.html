@@ -135,7 +135,7 @@
 
       // Send to backend for email
       try {
-        await fetch('https://your-backend-url/api/send-email', {
+        await fetch('https://aldo-chatbot-production.up.railway.app/api/send-email', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, message })
