@@ -1,6 +1,8 @@
 import dotenv from 'dotenv';
 
 dotenv.config();
+console.log("EMAIL_USER:", process.env.EMAIL_USER);
+console.log("EMAIL_PASS:", process.env.EMAIL_PASS ? "✅ Present" : "❌ Missing");
 
 import express from 'express';
 import cors from 'cors';
@@ -14,7 +16,7 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(bodyParser.json());
 
-// Nodemailer transporter setup
+// ✅ Nodemailer transporter setup
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -23,33 +25,41 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Email sending endpoint
-app.post('/api/send-email', (req, res) => {
-  const { email, message } = req.body;
+// ✅ API route to send email
+app.post('/api/send-email', async (req, res) => {
+  try {
+    const { email, message } = req.body;
+    console.log("📨 Email Request Received:", { email, message });
 
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to: 'shivanya.b@infera.in',
-    subject: 'New User Query from ALDO Chatbot',
-    text: `User Email: ${email}\n\nQuery: ${message}`
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error('Error sending email:', error);
-      return res.status(500).send('Failed to send email');
+    if (!email || !message) {
+      console.log("❌ Missing fields");
+      return res.status(400).send("Missing email or message");
     }
-    console.log('Email sent:', info.response);
-    res.status(200).send('Email sent successfully');
-  });
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: 'shivanya.b@infera.in',
+      subject: 'New User Query from ALDO Chatbot',
+      text: `User Email: ${email}\n\nQuery: ${message}`
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Email sent successfully:", info.response);
+    res.status(200).send("Email sent successfully");
+
+  } catch (err) {
+    console.error("❌ Email sending failed:", err.message, err.stack);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
-// Default route (optional)
+
+// ✅ Root route
 app.get('/', (req, res) => {
-  res.send('ALDO Support Chatbot Backend Running!');
+  res.send('🌱 ALDO Support Chatbot Backend Running!');
 });
 
-// Start server
+// ✅ Start the server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
