@@ -2,6 +2,165 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <title>Sustainable Support - ALDO</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f5f9f6;
+    }
+
+    .header {
+      background: #2e7d32;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 24px;
+    }
+
+    .chatbox {
+      max-width: 600px;
+      margin: 20px auto;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 10px;
+      background: #ffffff;
+      min-height: 400px;
+    }
+
+    .message {
+      margin: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      max-width: 80%;
+    }
+
+    .bot {
+      background-color: #dcedc8;
+      text-align: left;
+    }
+
+    .user {
+      background-color: #bbdefb;
+      text-align: right;
+      margin-left: auto;
+    }
+
+    .input-bar {
+      display: flex;
+      gap: 10px;
+      padding: 10px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .input-bar input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    .input-bar button {
+      padding: 10px 16px;
+      background-color: #388e3c;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    form {
+      max-width: 600px;
+      margin: 10px auto;
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+    }
+
+    form input, form textarea {
+      flex: 1;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    form button {
+      padding: 10px;
+      background-color: #2e7d32;
+      color: white;
+      border: none;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">🌱 ALDO Sustainable Support</div>
+
+  <div class="chatbox" id="chat">
+    <div class="message bot">Hi there! 👋 I'm your sustainability assistant. Ask me anything about ALDO's green efforts or leave your query below.</div>
+    <div id="messages"></div>
+  </div>
+
+  <form id="chat-form">
+    <input type="email" id="user-email" placeholder="Your email" required />
+    <textarea id="user-message" placeholder="Your sustainability question..." required></textarea>
+    <button type="submit">Send</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('chat-form');
+    const messages = document.getElementById('messages');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('user-email').value;
+      const message = document.getElementById('user-message').value;
+
+      appendMessage('user', message);
+
+      // Local predefined replies (sustainable topics)
+      const responses = {
+        'recycle': 'Yes! ALDO promotes recycling. Our packaging is 100% recyclable.',
+        'carbon': 'We offset carbon emissions through verified global projects.',
+        'green': 'We use eco-conscious materials like vegan leather.',
+        'plastic': 'We are reducing single-use plastic in packaging.',
+        'delivery': 'We are working with carbon-neutral delivery partners.'
+      };
+
+      const foundKey = Object.keys(responses).find(key => message.toLowerCase().includes(key));
+      const reply = foundKey ? responses[foundKey] : "I have asked the required person to look into it.";
+
+      appendMessage('bot', reply);
+
+      // Send to backend for email
+      try {
+        await fetch('https://your-backend-url/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, message })
+        });
+      } catch (err) {
+        appendMessage('bot', "Sorry, we couldn't send your query right now.");
+      }
+
+      form.reset();
+    });
+
+    function appendMessage(sender, text) {
+      const div = document.createElement('div');
+      div.className = `message ${sender}`;
+      div.textContent = text;
+      messages.appendChild(div);
+    }
+  </script>
+</body>
+</html>
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ALDO Chat</title>
   <style>
@@ -345,4 +504,5 @@
   </script>
 </body>
 </html>
+ -->
  -->
